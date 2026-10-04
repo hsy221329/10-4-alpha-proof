@@ -25,7 +25,7 @@
 | two-hot / 期望解码 | ✅ | 同上、`test_value_targets.py` |
 | 64 桶 7B 头可加载性 | ✅ | 云端 `head-runs/runs/train205628-full-v3/value-head.pt`（256→64）加载器键名归一后严格匹配；`s18-d64-full205628/head/head.pt` 实为 2048→1 标量头（勿用） |
 | 7B bf16 加载 + 前向 | ✅ | 云探针：117s、logits `[1,8,152064]`、hidden 3584 |
-| 7B + LoRA 联合更新 | ⏳ | `scripts/cloud_real_smoke.py` 全量冒烟进行中 |
+| 7B + LoRA 联合更新 | ✅ | 云端 `cloud_real_smoke.py`：真值头严格加载（missing/unexpected=[]）、LoRA applied、离线+在线各 1 次更新；回执 `outputs/cloud_smoke_full/report.json` |
 
 ## 更新（A5）
 

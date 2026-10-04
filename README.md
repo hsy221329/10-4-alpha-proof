@@ -73,7 +73,10 @@ python3 -m update_online.run_online --batch-size 4    # 凑 4 条更新一次
 ## 云 GPU
 
 - 运行副本：`/mnt/workspace/alphaproof-aligned/repo`（容器 `dsw-2230133-...`，ROCm）；
-- 模型：`/mnt/workspace/models/REAL-Prover-fe76f68d`；值头：`/mnt/workspace/new_value_head/s18-d64-full205628/head/head.pt`。
+- 模型：`/mnt/workspace/models/REAL-Prover-fe76f68d`；
+- 64 桶值头（7B 真值头）：`/mnt/workspace/new_value_head/heads-79efd240/train205628-full-v3/value-head.pt`（256→64，加载器已做键名归一）。
+  ⚠️ 注意：`s18-d64-full205628/head/head.pt` 实测是 **2048→1 标量头**（另一条 2048 特征轨），**不要**当作 7B 64 桶头使用；
+- 冒烟：`python3 scripts/cloud_real_smoke.py`（真实 7B + LoRA + 训练头；已实测通过）。
 
 ## 安全
 
