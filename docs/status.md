@@ -23,8 +23,9 @@
 | --- | --- | --- |
 | 64 桶价值头（唯一） | ✅ | `tests/test_value_head64.py` |
 | two-hot / 期望解码 | ✅ | 同上、`test_value_targets.py` |
-| s18 头可加载性 | ⚠️ | 云探针进行中（`/mnt/workspace/alphaproof-aligned/probe/`） |
-| 7B + LoRA 联合前向 | ⚠️ | 云端 real smoke 脚本已备（`scripts/cloud_real_smoke.py`） |
+| 64 桶 7B 头可加载性 | ✅ | 云端 `head-runs/runs/train205628-full-v3/value-head.pt`（256→64）加载器键名归一后严格匹配；`s18-d64-full205628/head/head.pt` 实为 2048→1 标量头（勿用） |
+| 7B bf16 加载 + 前向 | ✅ | 云探针：117s、logits `[1,8,152064]`、hidden 3584 |
+| 7B + LoRA 联合更新 | ⏳ | `scripts/cloud_real_smoke.py` 全量冒烟进行中 |
 
 ## 更新（A5）
 

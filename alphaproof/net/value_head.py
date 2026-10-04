@@ -81,9 +81,27 @@ if torch is not None:  # pragma: no cover - 需要 torch
             return cls(hidden, mid, bins)
 
     def load_s18_head(head: "ValueHead64", path: str, map_location: str = "cpu") -> dict:
-        """加载云端 s18-d64 系列头（兼容裸 state_dict 与 {'state_dict': ...} 包装）。"""
+        """加载云端 64 桶头（兼容裸 state_dict / {'state_dict'|'model'|'value_head': ...} 包装 /
+        '0.weight' 无前缀键名）。返回 missing/unexpected 列表。"""
         obj = torch.load(path, map_location=map_location)
-        state = obj if isinstance(obj, dict) and "net.0.weight" in obj else obj.get("state_dict", obj)
+        state = obj
+        if isinstance(state, dict):
+            for wrapper in ("state_dict", "model", "value_head"):
+                inner = state.get(wrapper)
+                if isinstance(inner, dict) and inner and hasattr(next(iter(inner.values())), "shape"):
+                    state = inner
+                    break
+        model_keys = set(head.state_dict().keys())
+        if isinstance(state, dict) and not model_keys.issubset(set(state.keys())):
+            remapped = {}
+            for key, value in state.items():
+                if key in model_keys:
+                    remapped[key] = value
+                elif ("net." + key) in model_keys:
+                    remapped["net." + key] = value
+                else:
+                    remapped[key] = value
+            state = remapped
         missing, unexpected = head.load_state_dict(state, strict=False)
         return {"missing": list(missing), "unexpected": list(unexpected)}
 

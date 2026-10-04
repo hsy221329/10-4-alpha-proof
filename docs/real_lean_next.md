@@ -4,22 +4,26 @@
 
 | 项 | 值 |
 | --- | --- |
-| 安装根目录 | `/mnt/gloway/projects/lean-4.28-reap` |
-| elan | `/mnt/gloway/tools/elan`（`ELAN_HOME`） |
+| 安装根目录 | `/mnt/gloway/projects/lean-4.28-reap`（exfat 上的**挂载点**） |
+| 实际数据 | `/home/a/lean-4.28-reap`（ext4），bind mount 到上者；已写入 `/etc/fstab` 持久化 |
+| elan | `/mnt/gloway/projects/lean-4.28-reap/elan`（`ELAN_HOME`；随 bind mount 落在 ext4） |
+| 安装脚本 | `/home/a/lean-4.28-reap/install_lean428.sh`（幂等，可重跑） |
 | Lean | `leanprover/lean4:v4.28.0-rc1` |
 | Reap | `IQuestLab/reap@0090d73c5f739e4d74000e053b00fd0148ff46aa` |
 | v1 训练补丁 | `0001-training-endpoints-and-value` / `0002-training-observer` / `0003-strict-value-errors` |
 | mathlib | `leanprover-community/mathlib4` rev `v4.28.0-rc1` |
 | 状态标记 | `state/01_elan.done … 99_install_ok.done`；日志 `logs/install.log` |
 
-安装脚本：`install_lean428.sh`（幂等，可重复执行；已完成阶段自动跳过）。
+> ⚠️ 为什么不用原生路径：`/mnt/gloway` 是 **exfat**（不支持符号链接），
+> elan/lake 全流程依赖 symlink，直接安装会失败（`Operation not permitted`）。
+> 因此采用 ext4 bind mount：路径语义保持在 Gloway 下，底层文件系统支持 symlink。
 
 ## 2. 应用本仓库的对齐补丁
 
 在基础环境编译通过后：
 
 ```bash
-export ELAN_HOME=/mnt/gloway/tools/elan
+export ELAN_HOME=/mnt/gloway/projects/lean-4.28-reap/elan
 export PATH="$ELAN_HOME/bin:$PATH"
 cd /mnt/gloway/projects/lean-4.28-reap/reap
 for p in /mnt/gloway/projects/10-4-alpha-proof/lean/patches/000*.patch; do

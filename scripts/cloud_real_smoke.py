@@ -27,7 +27,10 @@ TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj"
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="/mnt/workspace/models/REAL-Prover-fe76f68d")
-    ap.add_argument("--head", default="/mnt/workspace/new_value_head/s18-d64-full205628/head/head.pt")
+    ap.add_argument("--head", default="/mnt/workspace/head-runs/runs/train205628-full-v3/value-head.pt",
+                    help="64 桶 7B 头（256→64）。备选："
+                         "/mnt/workspace/new_value_head/artifact-fullv3/backend.full.pt；"
+                         "注意 s18-d64-full205628/head/head.pt 实测为 2048→1 标量头，勿用。")
     ap.add_argument("--out", default="outputs/cloud_smoke")
     ap.add_argument("--skip-model", action="store_true", help="只做值头/小模型检查")
     args = ap.parse_args()

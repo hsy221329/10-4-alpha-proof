@@ -41,3 +41,20 @@ def test_load_s18_head_roundtrip(tmp_path):
     head2 = ValueHead64(hidden_size=16, mid=4)
     report = load_s18_head(head2, str(path))
     assert not report["missing"] and not report["unexpected"]
+
+
+def test_load_s18_head_prefixed_and_wrapped(tmp_path):
+    """云端实际格式：键名无 'net.' 前缀（0.weight...），可能包在 {'value_head': ...}。"""
+    head = ValueHead64(hidden_size=16, mid=4)
+    legacy = {k.replace("net.", ""): v for k, v in head.state_dict().items()}
+    p1 = tmp_path / "legacy.pt"
+    torch.save(legacy, p1)
+    head2 = ValueHead64(hidden_size=16, mid=4)
+    r1 = load_s18_head(head2, str(p1))
+    assert not r1["missing"] and not r1["unexpected"]
+
+    p2 = tmp_path / "wrapped.pt"
+    torch.save({"value_head": legacy}, p2)
+    head3 = ValueHead64(hidden_size=16, mid=4)
+    r2 = load_s18_head(head3, str(p2))
+    assert not r2["missing"] and not r2["unexpected"]
