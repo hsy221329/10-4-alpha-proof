@@ -63,6 +63,7 @@ def main() -> int:
             args.model, local_files_only=True, torch_dtype=torch.bfloat16,
         )
         model = model.to("cuda" if torch.cuda.is_available() else "cpu")
+        head = head.to(model.device)          # 值头必须与主干同设备
         report["model_hidden"] = int(model.config.hidden_size)
         report["model_vocab"] = int(model.config.vocab_size)
         try:
