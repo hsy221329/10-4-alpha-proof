@@ -1,0 +1,91 @@
+# 10-4-alpha-proof
+
+> AlphaProof 语义对齐版（以《N33 官方设定与本机实现对照总表》为唯一口径）。
+> 目标：把搜索（MCTS）与参数更新的**语义/公式/关键超参**对齐官方，
+> 规模上明确不复刻（3B 编码解码器 / 300B 预训练 / 80M 课程 / TPU 集群），
+> 用 REAL-Prover 7B + LoRA + 64 桶价值头作为有理由的替代。
+
+本仓库当前提供两套**参数更新**实现（用户要求，分目录、各自独立 README）：
+
+| 目录 | 模式 | 监督信号 | batch 语义 | 样本范围 |
+| --- | --- | --- | --- | --- |
+| [`update_offline/`](update_offline/README.md) | **官方式离线专家迭代** | policy：对“搜索选中动作”交叉熵；value：64 桶 CE（权重 `1e-3`） | `--batch-size`（对应官方 4096，可配） | 证明 + **反证**；timeout 默认剔除；SFT 10% 混比 |
+| [`update_online/`](update_online/README.md) | **本机式在线更新（RTTT/TTTRL）** | 一个标量奖励同时驱动 policy（REINFORCE+KL）与 value（64 桶 CE） | `learn_batch_size`：=1 一条轨迹一更；=N 凑 N 条一更（梯度累积） | 已验证轨迹；正奖励须 `terminal_verified` |
+
+两套共享同一个 `alphaproof/` 核心包（搜索、价值目标、价值头、数据结构），
+但损失函数、数据流与调度完全分开，互不依赖。
+
+## 已对齐的 P0 清单（N33）
+
+| 编号 | 项目 | 本仓库实现 | 状态 |
+| --- | --- | --- | --- |
+| D1 | 先验温度 τ | 默认 **200**（官方 Table 3），运行时可改 | ✅ |
+| D6 | c_AND / 未访问惩罚 | **64 / 32**（官方 Table 3），Lean 补丁 + Python 双实现 | ✅ |
+| D2 | 失败兜底 | **-40**（官方伪代码），Lean 补丁 + 配置项 | ✅ |
+| D5 | 价值头形态 | **仅 64 桶**（无 tanh 标量版），two-hot 标签 + 期望解码 | ✅ |
+| G1 | value target | `compute_value_target`：终端 0 / OR `-1+子` / AND `min`；r 不再兜底 | ✅ |
+| G2 | 渐进采样 | 重新扩展**只增不减**（不重置 children） | ✅ |
+| G3 | 先验归一 | 打分时按 `totalMass` 归一 | ✅ |
+| D3 | value 损失权重 | 默认 **1e-3**（可配；64 桶 CE 下需重标定，见 docs/alignment.md） | ✅ |
+| D4 | policy 损失 | 双模式：离线 CE（官方）/ 在线 REINFORCE+KL（本机创新） | ✅ |
+
+## 目录结构
+
+```text
+alphaproof/                 # 共享核心（无 torch 亦可运行纯算法部分）
+  config.py                 # 全部超参：τ=200、c_AND=64、未访问=32、-40、bins=64、value_coef=1e-3
+  mcts/                     # 对齐版 PUCT（树 / 搜索）
+  env/                      # LeanEnv 三原语协议 + 佩尔题 Mock 环境
+  net/                      # ValueHead64（唯一形态）/ 双头前向
+  targets/                  # compute_value_target / extract_transitions / two-hot
+  data/events.py            # Transition / Trajectory
+  pipeline.py               # 搜索→轨迹→训练事件（Mock 版）
+  tiny.py                   # 无依赖小模型（冒烟/单测）
+update_offline/             # 官方式离线专家迭代（CE）
+update_online/              # 本机式在线更新（batch 可配）
+lean/patches/               # Reap 内核对齐补丁（τ / c_AND / unvisited / -40）
+tests/                      # pytest：价值目标、MCTS parity、两套 learner（torch 自动跳过）
+scripts/                    # 冒烟 / 云端脚本 / 密钥检查
+assets/pell/                # 佩尔题（来自用户已验收实验的题面）
+docs/                       # alignment / status / real_lean_next
+```
+
+## 快速开始
+
+```bash
+# 纯 CPU：搜索 + 价值目标（无需 torch）
+python3 -m pytest tests -q                 # 无 torch 时自动跳过 3 个更新测试
+python3 scripts/smoke_one_pell.py          # 单道佩尔题：搜索→轨迹→(有 torch 时)两种更新
+
+# 有 torch（或云端 ROCm）：
+python3 -m update_offline.run_expert_iteration --batch-size 8 --steps 1
+python3 -m update_online.run_online --batch-size 1    # 一条轨迹更新一次
+python3 -m update_online.run_online --batch-size 4    # 凑 4 条更新一次
+```
+
+## Lean 4.28 环境（Gloway）
+
+- 安装位置：`/mnt/gloway/projects/lean-4.28-reap`（elan 在 `/mnt/gloway/tools/elan`）；
+- 版本与 v1 训练容器一致：Lean `v4.28.0-rc1` + Reap `0090d73` + v1 训练补丁 0001–0003 + mathlib `v4.28.0-rc1`；
+- 在本仓库 `lean/patches/` 之上再应用 3 个对齐补丁（τ=200 / c_AND / -40），即得到“兼容且对齐”的内核；
+- 细节与复现命令见 [`docs/real_lean_next.md`](docs/real_lean_next.md) 与 [`lean/README.md`](lean/README.md)。
+
+## 云 GPU
+
+- 运行副本：`/mnt/workspace/alphaproof-aligned/repo`（容器 `dsw-2230133-...`，ROCm）；
+- 模型：`/mnt/workspace/models/REAL-Prover-fe76f68d`；值头：`/mnt/workspace/new_value_head/s18-d64-full205628/head/head.pt`。
+
+## 安全
+
+- 仓库**不包含**任何 token/密钥/私钥（推送前运行 `scripts/check_secrets.sh` 检查）；
+- 不包含官方论文补充材料与第三方源码；Reap 以内核补丁（diff）形式引用，需自行 clone 上游。
+
+## 来源与边界
+
+- 官方口径：AlphaProof 论文补充材料 Table 1–7 与 `pseudocode.py`（不随本仓库分发）；
+- 佩尔题：来自用户已验收实验 `20260828-real7b-pell-success`，本仓库只含题面与来源说明；
+- 不复刻：3B enc-dec、300B 预训练、80M 课程、TTRL 变体生成、Matchmaker 全套自适应预算（列为后续里程碑）。
+
+## 许可
+
+未指定开源许可证；如需引用请先联系仓库所有者。
