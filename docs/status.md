@@ -43,9 +43,9 @@
 
 | 项 | 状态 | 证据 |
 | --- | --- | --- |
-| Lean 4.28 环境（Gloway） | ⏳ | 安装中：`/mnt/gloway/projects/lean-4.28-reap/state/` |
+| Lean 4.28 环境（Gloway） | ✅ | `/mnt/gloway/projects/lean-4.28-reap`（ext4 bind mount，fstab 持久化）：Lean 4.28.0-rc1 + Reap@0090d73 + v1 补丁 + mathlib cache；`lake build` 7913 jobs 成功，对齐补丁后重编译成功 |
 | 纯 CPU 测试（my-new-linux） | ✅ | `8 passed, 3 skipped`（`~/venvs/alpha104`） |
-| 含 torch 全量测试（云 ROCm） | ✅ | `18 passed in 5.00s` |
+| 含 torch 全量测试（云 ROCm） | ✅ | `19 passed in 4.01s` |
 | Pell Mock 端到端冒烟 | ✅ | 搜索 7 节点 / 8 模拟；两种更新回执 |
-| 真实 Lean + 单道 Pell 全流程 | ⏳ | 等 Lean 环境（`docs/real_lean_next.md`） |
-| 真实 7B 云端冒烟 | ⏳ | `scripts/cloud_real_smoke.py` |
+| 真实 Lean + 单道 Pell 全流程 | ✅（mock 策略） | `out/pell-smoke/sessions2/`：16 步搜索、`result.json` schema `reap.training.result.v1`、progress/raw_tree/wall_clock 齐全；`trajectories2.jsonl` 17 条训练事件。mock 只会 `trivial` → `exhausted`（预期）；求解待更强策略 |
+| 真实 7B 云端冒烟 | ✅ | `scripts/cloud_real_smoke.py`：真值头严格加载、LoRA applied、离线+在线各 1 次更新 |

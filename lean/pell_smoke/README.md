@@ -48,3 +48,19 @@ python3 -m cpu_runtime.normalize_rollout --sessions-dir "$OUT/sessions" --output
 当前本仓库未包含可用的 7B policy HTTP 服务实现；`scripts/cloud_real_smoke.py`
 已验证模型+LoRA+值头在云端可加载、可前向、可更新。把服务接上后，本文件的
 `reapTrainingMCTS` 即可产出真实搜索轨迹并接入两套更新。
+
+## 4. 实测记录（2026-10-04，mock 策略）
+
+环境：`/mnt/gloway/projects/lean-4.28-reap`（Lean 4.28.0-rc1 + Reap@0090d73 + v1 补丁 + 对齐补丁，`lake build` 7913 jobs 成功）。
+
+```text
+会话：pell-smoke-mock-01
+结果：result.json → {"solved": false, "status": "exhausted", "schema_version": "reap.training.result.v1"}
+过程：progress.jsonl 16 条（step 0..16，max_nodes/max_steps=16）
+产物：raw_tree.json / wall_clock.jsonl / stderr.log / stdout.log 齐全
+归一：normalize_rollout → trajectories2.jsonl（17 条 training.transition.v1 事件，tactic "trivial" 被内核拒绝）
+```
+
+说明：mock 策略只回 `trivial`，因此搜索必然 exhausted；本次验证的是
+**真实内核执行 + 观察器/JSONL + 归一化**链路。接上能产出有效 tactic 的策略
+（脚本化 mock 或云端 7B 服务）即可得到 `solved: true` 与 `proof_script`。
