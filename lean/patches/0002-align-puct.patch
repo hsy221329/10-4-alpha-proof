@@ -1,6 +1,6 @@
---- a/Tactic/TreeSearch.lean
-+++ b/Tactic/TreeSearch.lean
-@@ -97,6 +97,8 @@
+--- a/Reap/Tactic/TreeSearch.lean
++++ b/Reap/Tactic/TreeSearch.lean
+@@ -101,6 +101,8 @@
    priorTemperature : Float
    progressiveSamplingC : Float
    progressiveSamplingAlpha : Float
@@ -9,7 +9,7 @@
  
  def scaledNatToFloat (n : Nat) : Float :=
    n.toFloat / 1000.0
-@@ -110,6 +112,8 @@
+@@ -114,6 +116,8 @@
    priorTemperature := reap.prior_temperature.get opts |>.toFloat
    progressiveSamplingC := scaledNatToFloat <| reap.progressive_sampling_c.get opts
    progressiveSamplingAlpha := scaledNatToFloat <| reap.progressive_sampling_alpha.get opts
@@ -18,7 +18,7 @@
  }
  
  end SearchHyperparameters
-@@ -315,18 +319,27 @@
+@@ -354,18 +358,27 @@
    let N := node.data.numVisit.toFloat
    let c := params.cInit + Float.log ((N + params.cBase + 1) / params.cBase)
    let totalMass := (node.children.map fun (e, _) => e.probability).sum

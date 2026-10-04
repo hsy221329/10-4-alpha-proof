@@ -1,5 +1,5 @@
---- a/Options.lean
-+++ b/Options.lean
+--- a/Reap/Options.lean
++++ b/Reap/Options.lean
 @@ -84,8 +84,8 @@
      descr := "MCTS value discount multiplier, scaled by 1000. γ in the AlphaProof paper." }
  

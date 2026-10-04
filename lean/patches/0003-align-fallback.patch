@@ -1,11 +1,11 @@
---- a/Tactic/Generator.lean
-+++ b/Tactic/Generator.lean
-@@ -141,7 +141,7 @@
-         throwError "Failed to parse value response as JSON"
-   match result with
-   | some result => return -result.score
--  | none => return -1000.0
-+  | none => return (reap.no_legal_actions_value.get opts).toFloat
+--- a/Reap/Tactic/Generator.lean
++++ b/Reap/Tactic/Generator.lean
+@@ -150,7 +150,7 @@
+     if strict then
+       throwError "Strict value inference failed after 3 attempts; refusing fallback sentinel"
+     else
+-      return -1000.0
++      return (reap.no_legal_actions_value.get opts).toFloat
  
  def Meta.ppProofState (mvarIds : List MVarId) : MetaM Format := do
    return Std.Format.joinSep (← mvarIds.mapM (Meta.ppGoal)) "\n".toFormat

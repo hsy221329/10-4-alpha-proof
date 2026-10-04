@@ -4,9 +4,13 @@
 
 | 补丁 | 文件 | 内容 |
 | --- | --- | --- |
-| `0001-align-options.patch` | `Options.lean` | τ 默认 200；新增 `reap.c_and=64`、`reap.unvisited_penalty=32`、`reap.no_legal_actions_value=-40` |
-| `0002-align-puct.patch` | `Tactic/TreeSearch.lean` | `computePUCTScores` 支持未访问惩罚与 AND 探索乘子；`SearchHyperparameters` 扩展 |
-| `0003-align-fallback.patch` | `Tactic/Generator.lean` | 值服务失败兜底 -1000 → -40 |
+| `0001-align-options.patch` | `Reap/Options.lean` | τ 默认 200；新增 `reap.c_and=64`、`reap.unvisited_penalty=32`、`reap.no_legal_actions_value=-40` |
+| `0002-align-puct.patch` | `Reap/Tactic/TreeSearch.lean` | `computePUCTScores` 支持未访问惩罚与 AND 探索乘子；`SearchHyperparameters` 扩展 |
+| `0003-align-fallback.patch` | `Reap/Tactic/Generator.lean` | 非严格模式值服务兜底 -1000 → -40 |
+
+> 补丁基线：**已应用 v1 训练补丁（0001–0003）之后**的 `IQuestLab/reap@0090d73` 文件
+> （v1 训练补丁改动了 `Generator.lean` 的值路径与 `TreeSearch.lean` 的观察器连接）。
+> 全新 clone 需先应用 v1 补丁再应用本目录补丁。
 
 ## 应用顺序（在 v1 训练补丁 0001–0003 之后）
 
