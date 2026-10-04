@@ -3,7 +3,7 @@
 
 在云 GPU（ROCm）上运行；预计数分钟（模型加载为主）。
     python3 scripts/cloud_real_smoke.py --model /mnt/workspace/models/REAL-Prover-fe76f68d \
-        --head /mnt/workspace/new_value_head/s18-d64-full205628/head/head.pt \
+        --head /mnt/workspace/new_value_head/heads-79efd240/train205628-full-v3/value-head.pt \
         --out /mnt/workspace/alphaproof-aligned/repo/outputs/cloud_smoke
 """
 
@@ -27,7 +27,7 @@ TARGET_MODULES = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj"
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="/mnt/workspace/models/REAL-Prover-fe76f68d")
-    ap.add_argument("--head", default="/mnt/workspace/head-runs/runs/train205628-full-v3/value-head.pt",
+    ap.add_argument("--head", default="/mnt/workspace/new_value_head/heads-79efd240/train205628-full-v3/value-head.pt",
                     help="64 桶 7B 头（256→64）。备选："
                          "/mnt/workspace/new_value_head/artifact-fullv3/backend.full.pt；"
                          "注意 s18-d64-full205628/head/head.pt 实测为 2048→1 标量头，勿用。")
