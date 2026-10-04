@@ -8,6 +8,7 @@
 | 文件 | 内容 | 运行 |
 | --- | --- | --- |
 | `update_modes_walkthrough.py` | ① 价值目标回溯（AND 取 min）② 离线 CE 逐步 ③ 在线 REINFORCE+KL（含闭式平衡点验证）④ 有限差分梯度校验 ⑤ batch 平均与 r=0 | `python3 examples/update_modes_walkthrough.py` |
+| `update_modes_walkthrough.ipynb` | **教学展开版（Python 入门推荐）**：每个函数逐行拆解 + 数学推导（softmax 雅可比、CE 梯度、策略梯度定理、KL 平衡点）+ 已保存执行输出 | 用 Jupyter 打开（或云端 `jupyter nbconvert --execute`） |
 
 纯标准库实现，无 torch / numpy 依赖，任何 Python 3.10+ 可直接跑；
 每节末尾用 `assert` 固化结论，脚本本身也是一个可回归的“教学测试”。
