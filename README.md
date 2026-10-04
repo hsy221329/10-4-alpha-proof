@@ -43,6 +43,7 @@ alphaproof/                 # 共享核心（无 torch 亦可运行纯算法部�
   tiny.py                   # 无依赖小模型（冒烟/单测）
 update_offline/             # 官方式离线专家迭代（CE）
 update_online/              # 本机式在线更新（batch 可配）
+curriculum/                 # 课程机制：依赖解锁 + 预算调度 + 三闸门 + 运行器
 lean/patches/               # Reap 内核对齐补丁（τ / c_AND / unvisited / -40）
 tests/                      # pytest：价值目标、MCTS parity、两套 learner（torch 自动跳过）
 scripts/                    # 冒烟 / 云端脚本 / 密钥检查
@@ -62,6 +63,25 @@ python3 -m update_offline.run_expert_iteration --batch-size 8 --steps 1
 python3 -m update_online.run_online --batch-size 1    # 一条轨迹更新一次
 python3 -m update_online.run_online --batch-size 4    # 凑 4 条更新一次
 ```
+
+## 课程学习机制（curriculum/）
+
+对齐官方 Table 7 与本机 v1 规格的**轻量调度实现**（只调度、不执行搜索；executor 注入）：
+
+- 预算：`B = min(cap, base × mult^f)`，默认 250 / 1.17 / 16000（f = 窗口内 exhausted 次数）；
+- 信任/掌握窗口：8 / 12；优先级权重：interesting 1.0 / undecided 0.1 / fully-proved 0.001 / disproved 0；
+- 证明/反证 50% 确定性极性；`disproved` 永久排除；`unknown` 冻结待对账；
+- 依赖解锁：默认连续成功 1 次即可推进（`advance_streak` 可配；`strict_mastery=True` 切官方 12 次口径）；
+- 三闸门（变体准入判定）：Lean 编译 / 难度 `1−solve@16 ∈ [0.5,0.9]` / 结构 `Sim ≥ 0.7`；
+- Pell 七课课程表 `curriculum/pell_course.json`；运行器状态 JSON 原子写、可断点续跑。
+
+```bash
+python3 scripts/run_curriculum.py --course curriculum/pell_course.json \
+    --state outputs/curriculum_demo_state.json --max-steps 40 --mock fail-once
+```
+
+> 未实现（透明声明）：teacher 变体生成 / auto-formalization（官方 Gemini、本机 DeepSeek 三闸门管线）
+> 均未接入；闸门只做判定，`solve@16` 与结构相似度需由调用方提供实测值。
 
 ## Lean 4.28 环境（Gloway）
 

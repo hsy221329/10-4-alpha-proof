@@ -39,6 +39,20 @@
 | value 目标不回落 r | ✅ | `test_value_target_optional_but_no_r_fallback` |
 | value 权重 1e-3 重标定 | ⚠️ | 配置已切；真实训练校准曲线待跑 |
 
+## 课程机制（curriculum/，本轮新增）
+
+| 项 | 状态 | 证据 |
+| --- | --- | --- |
+| 预算 250×1.17^f / cap 16000 | ✅ | `Scheduler.budget`、`test_budget_growth_and_cap`（默认窗口 25 → 12664；窗口 50 触 cap） |
+| trust/mastery 8/12 | ✅ | `test_priority_weights_and_mastery`、`test_strict_mastery_mode...` |
+| 反证率 50% + 永久排除 | ✅ | `polarity_for`、`test_polarity_deterministic...`、`test_unknown_blocks...` |
+| 优先级四档权重 | ✅ | `priority_weight` 测试 |
+| 依赖解锁/推进门槛 | ✅ | `test_dependency_unlocking`、`test_strict_mastery_mode...` |
+| 三闸门判定 | ✅ | `test_gates_boundaries`（编译/难度/结构边界） |
+| Pell 七课课程表 + 运行器 | ✅ | 演示：14 步跑完 7 课，预算 250→292/课；状态可断点续跑（`test_runner_persistence_and_resume`） |
+| teacher 变体生成 / auto-formalization | ❌ | 未接入（闸门只判定） |
+| Matchmaker 文件级多进程协议 | ❌ | 未搬迁（单进程轻量版） |
+
 ## 环境与测试
 
 | 项 | 状态 | 证据 |
