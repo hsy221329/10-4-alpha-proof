@@ -64,3 +64,33 @@ python3 -m cpu_runtime.normalize_rollout --sessions-dir "$OUT/sessions" --output
 说明：mock 策略只回 `trivial`，因此搜索必然 exhausted；本次验证的是
 **真实内核执行 + 观察器/JSONL + 归一化**链路。接上能产出有效 tactic 的策略
 （脚本化 mock 或云端 7B 服务）即可得到 `solved: true` 与 `proof_script`。
+
+## 5. 求解记录：课程第一课已解出（2026-10-04）
+
+策略：`scripts/scripted_policy_server.py`（测试夹具）返回单条 tactic：
+
+```text
+solve | intro x y h; simp only [step]; nlinarith [h]
+```
+
+结果（`out/pell-smoke/sessions-invariant2/pell-invariant-01/result.json`）：
+
+```json
+{"solved": true, "status": "solved",
+ "proof_script": "solve | intro x y h; simp only [step]; nlinarith [h]",
+ "schema_version": "reap.training.result.v1"}
+```
+
+要点：
+- 该 tactic 经内核执行 → `checkProofScript` → `replaySolvedNode` → `checkProof` 全部通过；
+- `normalize_rollout` 产出 5 条事件（3 × tactic_eval、1 × tree_edge、1 × session_result）；
+- **约束**：`evalTacticStr` 每次只接受**一条** tactic，顶层 `;` 序列会 parseError；
+  多步证明请写成单条组合子（如 `solve | t1; t2; t3` 或 `exact ... by t1; t2`）。
+
+复现命令：
+
+```bash
+python3 scripts/scripted_policy_server.py --port 18081 \
+  --tactic "solve | intro x y h; simp only [step]; nlinarith [h]" &
+# 然后用 manifest.invariant.jsonl 跑 batch_solver（同上 §2 的 ②③）
+```
