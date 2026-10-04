@@ -5,7 +5,7 @@
        throwError "Strict value inference failed after 3 attempts; refusing fallback sentinel"
      else
 -      return -1000.0
-+      return (reap.no_legal_actions_value.get opts).toFloat
++      return Float.ofInt (reap.no_legal_actions_value.get opts)
  
  def Meta.ppProofState (mvarIds : List MVarId) : MetaM Format := do
    return Std.Format.joinSep (← mvarIds.mapM (Meta.ppGoal)) "\n".toFormat
