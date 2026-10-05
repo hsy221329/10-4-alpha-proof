@@ -108,6 +108,11 @@ def validate_train_config(config: dict, *, allow_draft: bool = False) -> None:
             raise ValueError(f"train.{key} must be a positive integer")
     if train["batch_size"] % train["micro_batch_size"] != 0:
         raise ValueError("batch_size must be divisible by micro_batch_size")
+    sampling = config.get("replay", {}).get("sampling")
+    if sampling not in {"uniform_over_transitions", "full_replay"}:
+        raise ValueError(
+            "replay.sampling must be 'uniform_over_transitions' or 'full_replay'"
+        )
     for key in ("policy_lr", "value_lr", "value_coef", "max_grad_norm"):
         value = train[key]
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
@@ -743,6 +748,34 @@ def _sample_replay(replay: list[dict], count: int, rng: random.Random) -> list[d
     return rng.sample(replay, count) if len(replay) >= count else rng.choices(replay, k=count)
 
 
+def _select_replay_batch(replay: list[dict], manifest: dict, *, count: int,
+                         sampling: str, rng: random.Random) -> list[dict]:
+    """Select one optimizer-step batch under the frozen replay policy.
+
+    ``full_replay`` is intentionally fail-closed: the signed replay manifest,
+    validated rows, and frozen batch size must all describe the same complete
+    transition set.  This prevents a nominal one-step CE wave from silently
+    degrading into a one-transition update.
+    """
+    manifest_count = manifest.get("stats", {}).get("transitions")
+    if (isinstance(manifest_count, bool) or not isinstance(manifest_count, int)
+            or manifest_count <= 0 or manifest_count != len(replay)):
+        raise ValueError(
+            "replay manifest transition count does not match validated rows: "
+            f"manifest={manifest_count!r}, rows={len(replay)}"
+        )
+    if sampling == "full_replay":
+        if count != len(replay):
+            raise ValueError(
+                "full_replay requires train.batch_size to equal the validated replay size: "
+                f"batch_size={count}, replay={len(replay)}"
+            )
+        return list(replay)
+    if sampling == "uniform_over_transitions":
+        return _sample_replay(replay, count, rng)
+    raise ValueError(f"unsupported replay sampling policy: {sampling!r}")
+
+
 def _manifest_files(root: Path) -> list[dict]:
     rows = []
     for path in sorted(item for item in root.rglob("*") if item.is_file()
@@ -1363,7 +1396,10 @@ def run(config_path: str | Path, replay_bundle: str | Path, output_dir: str | Pa
     model.train()
     value_head.train()
     for wave_step in range(wave_start_step + 1, steps + 1):
-        selected = _sample_replay(rows, int(train["batch_size"]), rng)
+        selected = _select_replay_batch(
+            rows, replay_manifest, count=int(train["batch_size"]),
+            sampling=str(config["replay"]["sampling"]), rng=rng,
+        )
         selected_ids = [row["extra"]["transition_id"] for row in selected]
         selection_sha256 = object_hash(selected_ids)
         policy_weight_total = sum(

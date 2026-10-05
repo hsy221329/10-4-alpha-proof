@@ -18,7 +18,7 @@ import ce_arm.train as train_module
 from ce_arm.train import (encode_rows, load_transition_rows, reconcile_checkpoints,
                           sha256_file, validate_train_config, verify_asset_lock,
                           validate_replay_bundle, verify_checkpoint, verify_initial_adapter,
-                          write_checkpoint, _seed_all)
+                          write_checkpoint, _seed_all, _select_replay_batch)
 
 
 PRIVATE_KEY = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
@@ -344,7 +344,10 @@ def test_manifest_hash_blocks_direct_jsonl_tamper_and_semantics_block_rehash(tmp
 def test_config_rejects_nonsensical_numerics():
     config = {
         "status": "frozen", "model": {"value_bins": 64},
-        "replay": {"distance_overflow_policy": "reject"},
+        "replay": {
+            "distance_overflow_policy": "reject",
+            "sampling": "uniform_over_transitions",
+        },
         "train": {
             "batch_size": 2, "micro_batch_size": 1, "steps_per_wave": 1,
             "max_length": 10, "policy_lr": 1e-4, "value_lr": 1e-4,
@@ -355,6 +358,32 @@ def test_config_rejects_nonsensical_numerics():
     }
     with pytest.raises(ValueError, match="dropout"):
         validate_train_config(config)
+
+
+def test_full_replay_selects_every_validated_transition_exactly_once():
+    rows = [{"id": index} for index in range(20)]
+    manifest = {"stats": {"transitions": 20}}
+    selected = _select_replay_batch(
+        rows, manifest, count=20, sampling="full_replay", rng=random.Random(7)
+    )
+    assert selected == rows
+    assert len({id(row) for row in selected}) == 20
+
+
+@pytest.mark.parametrize(
+    ("manifest_count", "batch_size", "match"),
+    [(19, 20, "manifest transition count"), (20, 1, "batch_size")],
+)
+def test_full_replay_fails_closed_on_any_effective_batch_shrink(
+    manifest_count, batch_size, match,
+):
+    rows = [{"id": index} for index in range(20)]
+    manifest = {"stats": {"transitions": manifest_count}}
+    with pytest.raises(ValueError, match=match):
+        _select_replay_batch(
+            rows, manifest, count=batch_size, sampling="full_replay",
+            rng=random.Random(7),
+        )
 
 
 class FakeModel:

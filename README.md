@@ -22,7 +22,7 @@ REAL-Prover 7B 的同源搜索路径 CE 与 Online-v2 对照位于
 实际运行20个family的v001、一个共同搜索波，heldout为同族v009/v010共40题。
 CE完成20条transition的full-replay更新；Online尝试更新后因冻结KL门禁拒绝并完整回滚，
 部署结果按身份审计复用initial评测。原多波协议和双方接受更新门禁均为INCOMPLETE，
-不能据此宣布成功学习后的算法优劣。冻结输入、运行哈希、证据来源和最终数字见实验README。
+40题均为给定目标假设的direct_target脚手架；initial24/40、CE25/40，不能据此宣布数学证明发现能力提升或成功学习后的算法优劣。冻结输入、运行哈希、证据来源和最终数字见实验README。
 
 ## 已对齐的 P0 清单（N33）
 

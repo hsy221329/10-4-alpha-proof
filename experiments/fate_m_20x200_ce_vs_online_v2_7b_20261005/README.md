@@ -78,4 +78,4 @@ python3 "$E/scripts/collect_corrected_evidence.py" --experiment-root "$E" --outp
 
 ## 下一安全动作
 
-实验不再训练或重跑heldout。完整证据已下载、逐成员校验并从task rows重算指标，正在向目标仓库提交fork PR。后续实验应建立新ID并冻结独立协议；若要衡量证明发现，需要不把目标作为已知假设的评测。不得将本次脚手架结果扩展为算法能力结论。checkpoint保留远端，不下载base/二进制、不删除远端资产。
+实验不再训练或重跑heldout。完整证据已下载、逐成员校验并从task rows重算指标，代码与结果已交付至[目标仓库PR #1](https://github.com/wufuju2023-cell/10-4-alpha-proof/pull/1)，尚未合并。后续实验应建立新ID并冻结独立协议；若要衡量证明发现，需要不把目标作为已知假设的评测。不得将本次脚手架结果扩展为算法能力结论。checkpoint保留远端，不下载base/二进制、不删除远端资产。

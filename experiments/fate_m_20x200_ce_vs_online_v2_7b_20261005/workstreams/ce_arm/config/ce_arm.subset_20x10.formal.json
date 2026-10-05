@@ -97,7 +97,7 @@
     "include_timeouts": false,
     "include_infrastructure_errors": false,
     "sft_mix": 0.0,
-    "sampling": "uniform_over_transitions",
+    "sampling": "full_replay",
     "capacity_transitions": 10240,
     "distance_overflow_policy": "reject"
   },
@@ -106,7 +106,7 @@
     "device": "cuda",
     "dtype": "bfloat16",
     "max_length": 1024,
-    "batch_size": 1,
+    "batch_size": 20,
     "micro_batch_size": 1,
     "steps_per_wave": 1,
     "policy_lr": 0.0001,
