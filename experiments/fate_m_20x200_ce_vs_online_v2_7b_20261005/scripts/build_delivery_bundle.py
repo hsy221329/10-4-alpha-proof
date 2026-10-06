@@ -49,8 +49,10 @@ def main():
             index = json.loads(archive.read("INDEX.json"))
             index = index.get("files", index)
             for source, entry in index.items():
-                member = archive.read(entry["member"])
-                assert sha(member) == entry["sha256"], source
+                member_name = entry["member"] if isinstance(entry, dict) else "remote/" + source.lstrip("/")
+                expected_hash = entry["sha256"] if isinstance(entry, dict) else entry
+                member = archive.read(member_name)
+                assert sha(member) == expected_hash, source
             for member in archive.namelist():
                 assert not secret.search(archive.read(member).decode("utf-8", errors="ignore")), member
             scanned.append({"name": name, "verified_index_members": len(index), "sha256": expected})
