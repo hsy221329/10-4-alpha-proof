@@ -3,7 +3,7 @@
   "dataset": {
     "upstream": "https://github.com/frenzymath/FATE-M",
     "upstream_commit": "4eb33c8ccd0ff058b461cd763cc406509129743f",
-    "license": "MIT; data/provenance/FATE-M-LICENSE.txt",
+    "license": "MIT; data/provenance/docs/FATE-M-LICENSE.txt",
     "derived_from": "experiments/fate_m_lean_curriculum_20x200_20261004/data/problems.jsonl",
     "derived_rows": 4000,
     "derived_source_sha256": "3f702d1e5add11721867735c369e5e4736dfe4e4ae28674220bc8bef6dc8152d",
