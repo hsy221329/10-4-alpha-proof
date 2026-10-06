@@ -76,6 +76,16 @@ python3 "$E/scripts/collect_corrected_evidence.py" --experiment-root "$E" --outp
 
 上述审计/报告/归档采用不可变输出，已有产物不覆盖。CE终评的冻结root-state pins必须保留；恢复同一评测目录会复用已完成题目和attempt证据。
 
+## 交付包
+
+[简短交付说明](derived/results/delivery_summary_20261006.txt)与[材料来源清单](derived/results/material_sources_20261006.json)已随PR交付。整理的ZIP位于`build/modelscope_ce_online_delivery_20261006.zip`：顶层DELIVERY.txt、PR精确提交的完整code/、三个原样evidence/ZIP与逐成员MANIFEST.json；不含模型权重、私钥或缓存。FATE-M原题快照、MIT许可和课程生成/校验代码位于`data/provenance/`。
+
+打包与验证命令（输出不可覆盖）：
+
+```powershell
+python scripts/build_delivery_bundle.py --repo build/target-repo-pr --evidence-root . --output build/modelscope_ce_online_delivery_20261006.zip
+```
+
 ## 下一安全动作
 
 实验不再训练或重跑heldout。完整证据已下载、逐成员校验并从task rows重算指标，代码与结果已交付至[目标仓库PR #1](https://github.com/wufuju2023-cell/10-4-alpha-proof/pull/1)，尚未合并。后续实验应建立新ID并冻结独立协议；若要衡量证明发现，需要不把目标作为已知假设的评测。不得将本次脚手架结果扩展为算法能力结论。checkpoint保留远端，不下载base/二进制、不删除远端资产。
